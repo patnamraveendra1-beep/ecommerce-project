@@ -1,3 +1,4 @@
+require ("dotenv").config();
 const express = require("express");
 console.log("MY SERVER FILE LOADED");
 const authRoutes = require("./routes/authRoutes");
@@ -12,7 +13,7 @@ app.use(express.json());
 //app.use("/api", authRoutes);
 
 // MongoDB
-const client = new MongoClient("mongodb://127.0.0.1:27017");
+const client = new MongoClient(process.env.MONGO_URI);
 let db;
 
 // JWT Middleware
