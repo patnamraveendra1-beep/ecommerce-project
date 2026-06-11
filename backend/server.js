@@ -13,6 +13,7 @@ app.use(express.json());
 //app.use("/api", authRoutes);
 
 // MongoDB
+console.log("MONGO_URI =", process.env.MONGO_URI);
 const client = new MongoClient(process.env.MONGO_URI);
 let db;
 
@@ -417,9 +418,9 @@ async function start() {
     db = client.db("ecommerce");
 
     console.log("DB CONNECTED SUCCESSFULLY ✅");
-
-    app.listen(5000, () => {
-      console.log("Server running on port 5000");
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
     });
 
   } catch (err) {

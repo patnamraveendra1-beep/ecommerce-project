@@ -1,11 +1,18 @@
-const mongoose = require("mongoose");
+require("dotenv").config();
+const { MongoClient } = require("mongodb");
 
-mongoose.connect("mongodb://127.0.0.1:27017")
-  .then(() => {
-    console.log("CONNECTED SUCCESSFULLY");
-    process.exit(0);
-  })
-  .catch(err => {
-    console.log("FAILED:", err);
-    process.exit(1);
-  });
+async function test() {
+  try {
+    const client = new MongoClient(process.env.MONGO_URI);
+
+    await client.connect();
+
+    console.log("MONGODB DRIVER CONNECTED");
+
+    await client.close();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+test();

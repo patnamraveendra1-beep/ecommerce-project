@@ -1,0 +1,18 @@
+services:
+  backend:
+    build: ./backend
+    container_name: ecommerce-backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    restart: always
+
+  frontend:
+    build: ./frontend
+    container_name: ecommerce-frontend
+    ports:
+      - "3000:3000"
+    restart: always
+    depends_on:
+      - backend
