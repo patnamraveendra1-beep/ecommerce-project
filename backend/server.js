@@ -10,8 +10,10 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-//app.use("/api", authRoutes);
 
+app.get("/", (req, res) => {
+  res.send("Backend API Running Successfully");
+}); 
 // MongoDB
 console.log("MONGO_URI =", process.env.MONGO_URI);
 const client = new MongoClient(process.env.MONGO_URI);
