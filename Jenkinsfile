@@ -3,7 +3,8 @@ agent any
 
 
 environment {
-    DOCKER_IMAGE = "patnamraveendra/ecommerce-project"
+    BACKEND_IMAGE = "patnamraveendra/ecommerce-backend"
+    FRONTEND_IMAGE = "patnamraveendra/ecommerce-frontend"
 }
 
 stages {
@@ -11,13 +12,19 @@ stages {
     stage('Checkout') {
         steps {
             git branch: 'main',
-            url: 'https://github.com/patnamraveendra1-beep/ecommerce-project.git'
+                url: 'https://github.com/patnamraveendra1-beep/ecommerce-project.git'
         }
     }
 
-    stage('Build Docker Image') {
+    stage('Build Backend Image') {
         steps {
-            bat 'docker build -t %DOCKER_IMAGE%:latest .'
+            bat 'docker build -t %BACKEND_IMAGE%:latest -f backend/Dockerfile backend'
+        }
+    }
+
+    stage('Build Frontend Image') {
+        steps {
+            bat 'docker build -t %FRONTEND_IMAGE%:latest -f frontend/Dockerfile frontend'
         }
     }
 
@@ -33,9 +40,15 @@ stages {
         }
     }
 
-    stage('Push Image') {
+    stage('Push Backend Image') {
         steps {
-            bat 'docker push %DOCKER_IMAGE%:latest'
+            bat 'docker push %BACKEND_IMAGE%:latest'
+        }
+    }
+
+    stage('Push Frontend Image') {
+        steps {
+            bat 'docker push %FRONTEND_IMAGE%:latest'
         }
     }
 }
