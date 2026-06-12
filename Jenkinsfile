@@ -2,22 +2,40 @@ pipeline {
 agent any
 
 
+environment {
+    DOCKER_IMAGE = "patnamraveendra/ecommerce-project"
+}
+
 stages {
-    stage('GitHub Checkout') {
+
+    stage('Checkout') {
         steps {
-            checkout([
-                $class: 'GitSCM',
-                branches: [[name: '*/main']],
-                userRemoteConfigs: [[
-                    url: 'https://github.com/patnamraveendra1-beep/ecommerce-project.git'
-                ]]
-            ])
+            git branch: 'main',
+            url: 'https://github.com/patnamraveendra1-beep/ecommerce-project.git'
         }
     }
 
-    stage('Build') {
+    stage('Build Docker Image') {
         steps {
-            echo 'Build Successful'
+            bat 'docker build -t %DOCKER_IMAGE%:latest .'
+        }
+    }
+
+    stage('Docker Login') {
+        steps {
+            withCredentials([usernamePassword(
+                credentialsId: 'dockerhub-creds',
+                usernameVariable: 'DOCKER_USER',
+                passwordVariable: 'DOCKER_PASS'
+            )]) {
+                bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
+            }
+        }
+    }
+
+    stage('Push Image') {
+        steps {
+            bat 'docker push %DOCKER_IMAGE%:latest'
         }
     }
 }
