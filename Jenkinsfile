@@ -4,6 +4,7 @@ pipeline {
     stages {
         stage('GitHub Checkout') {
             steps {
+                git branch: "main",
                 git 'https://github.com/patnamraveendra1-beep/ecommerce-project.git'
             }
         }
