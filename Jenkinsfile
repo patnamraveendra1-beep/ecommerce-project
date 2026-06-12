@@ -3,7 +3,6 @@ agent any
 
 ```
 stages {
-
     stage('GitHub Checkout') {
         steps {
             checkout([
@@ -21,7 +20,6 @@ stages {
             echo 'Build Successful'
         }
     }
-
 }
 ```
 
