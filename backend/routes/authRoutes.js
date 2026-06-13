@@ -62,7 +62,7 @@ if (!isMatch) {
 
 const token = jwt.sign(
   { email },
-  "secretkey",
+  process.env.JWT_SECRET,
   { expiresIn: "1h" }
 );
 

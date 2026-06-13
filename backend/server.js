@@ -1,11 +1,14 @@
 require ("dotenv").config();
+const dns = require("dns");
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
+
 const express = require("express");
 console.log("MY SERVER FILE LOADED");
 const authRoutes = require("./routes/authRoutes");
 const cors = require("cors");
 const { MongoClient, ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
-
+const bcrypt = require("bcrypt");
 const app = express();
 
 app.use(cors());
@@ -16,6 +19,7 @@ app.get("/", (req, res) => {
 }); 
 // MongoDB
 console.log("MONGO_URI =", process.env.MONGO_URI);
+
 const client = new MongoClient(process.env.MONGO_URI);
 let db;
 
@@ -34,7 +38,7 @@ const token = authHeader.split(" ")[1];
 
 const decoded = jwt.verify(  
   token,  
-  "secretkey"  
+  process.env.JWT_SECRET 
 );  
 
 req.user = decoded;  
@@ -64,10 +68,12 @@ error: "User already exists",
 });
 }
 
+const hashedPassword = await bcrypt.hash(password, 10);
+
 await db.collection("users").insertOne({
-name,
-email,
-password,
+  name,
+  email,
+  password: hashedPassword,
 });
 
 res.json({
@@ -89,17 +95,22 @@ error: "User not found",
 });
 }
 
-if (user.password !== password) {
-return res.status(400).json({
-error: "Invalid password",
-});
+const isMatch = await bcrypt.compare(
+  password,
+  user.password
+);
+
+if (!isMatch) {
+  return res.status(400).json({
+    error: "Invalid password",
+  });
 }
 
 const token = jwt.sign(
 {
 email: user.email,
 },
-"secretkey",
+process.env.JWT_SECRET,
 {
 expiresIn: "1h",
 }
@@ -115,6 +126,9 @@ token,
 
 // Add Product
 app.post("/api/products", async (req, res) => {
+
+req.body.price = Number(req.body.price);
+
 const result = await db
 .collection("products")
 .insertOne(req.body);
@@ -123,6 +137,7 @@ res.json({
 message: "Product Added Successfully",
 id: result.insertedId,
 });
+
 });
 
 // Get Products
@@ -276,7 +291,7 @@ await db.collection("orders").insertOne({
 email,
 items: cartItems,
 total: cartItems.reduce(
-(sum, item) => sum + item.price,
+(sum, item) => sum + Number (item.price),
 0
 ),
 status: "Pending",
@@ -376,24 +391,6 @@ app.delete("/api/admin/users/:email", async (req, res) => {
       message: err.message,
     });
   }
-});
-app.put("/api/admin/orders/:id", async (req, res) => {
-const { status } = req.body;
-
-await db.collection("orders").updateOne(
-{
-_id: new ObjectId(req.params.id),
-},
-{
-$set: {
-status,
-},
-}
-);
-
-res.json({
-message: "Order Status Updated",
-});
 });
 app.delete("/api/admin/orders/:id", async (req, res) => {
   await db.collection("orders").deleteOne({
