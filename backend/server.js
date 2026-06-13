@@ -53,75 +53,77 @@ error: "Invalid token",
 }
 
 // ==================== AUTH ====================
-
-// REGISTER
 app.post("/api/auth/register", async (req, res) => {
-const { name, email, password } = req.body;
+  try {
+    const { name, email, password } = req.body;
 
-const existingUser = await db
-.collection("users")
-.findOne({ email });
+    const existingUser = await db
+      .collection("users")
+      .findOne({ email });
 
-if (existingUser) {
-return res.status(400).json({
-error: "User already exists",
+    if (existingUser) {
+      return res.status(400).json({
+        error: "User already exists",
+      });
+    }
+
+    const hashedPassword =
+      await bcrypt.hash(password, 10);
+
+    await db.collection("users").insertOne({
+      name,
+      email,
+      password: hashedPassword,
+    });
+
+    res.json({
+      message: "User Registered Successfully",
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
 });
-}
-
-const hashedPassword = await bcrypt.hash(password, 10);
-
-await db.collection("users").insertOne({
-  name,
-  email,
-  password: hashedPassword,
-});
-
-res.json({
-message: "User Registered Successfully",
-});
-});
-
-// LOGIN
+// REGISTER
 app.post("/api/auth/login", async (req, res) => {
-const { email, password } = req.body;
+  try {
+    console.log("LOGIN BODY:", req.body);
 
-const user = await db
-.collection("users")
-.findOne({ email });
+    const { email, password } = req.body;
 
-if (!user) {
-return res.status(400).json({
-error: "User not found",
+    if (!email || !password) {
+      return res.status(400).json({ error: "Missing fields" });
+    }
+
+    const user = await db.collection("users").findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({ error: "Invalid password" });
+    }
+
+    const token = jwt.sign(
+      { email: user.email },
+      "secretkey",
+      { expiresIn: "1h" }
+    );
+
+    res.json({
+      message: "Login Success",
+      token,
+    });
+
+  } catch (err) {
+    console.log("LOGIN ERROR:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
-}
-
-const isMatch = await bcrypt.compare(
-  password,
-  user.password
-);
-
-if (!isMatch) {
-  return res.status(400).json({
-    error: "Invalid password",
-  });
-}
-
-const token = jwt.sign(
-{
-email: user.email,
-},
-process.env.JWT_SECRET,
-{
-expiresIn: "1h",
-}
-);
-
-res.json({
-message: "Login Success",
-token,
-});
-});
-
 // ==================== PRODUCTS ====================
 
 // Add Product
