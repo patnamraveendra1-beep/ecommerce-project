@@ -25,30 +25,42 @@ let db;
 
 // JWT Middleware
 function verifyToken(req, res, next) {
+
+console.log(
+  "AUTH HEADER =",
+  req.headers.authorization
+);
+
 const authHeader = req.headers.authorization;
 
 if (!authHeader) {
-return res.status(401).json({
-error: "Token required",
-});
+  return res.status(401).json({
+    error: "Token required",
+  });
 }
 
 try {
-const token = authHeader.split(" ")[1];
+  const token = authHeader.split(" ")[1];
 
-const decoded = jwt.verify(  
-  token,  
-  process.env.JWT_SECRET 
-);  
+  const decoded = jwt.verify(
+    token,
+    process.env.JWT_SECRET,
+  );
 
-req.user = decoded;  
+  req.user = decoded;
 
-next();
+  next();
 
 } catch (err) {
-return res.status(401).json({
-error: "Invalid token",
-});
+
+  console.log(
+    "JWT ERROR =",
+    err.message
+  );
+
+  return res.status(401).json({
+    error: "Invalid token",
+  });
 }
 }
 
@@ -110,7 +122,7 @@ app.post("/api/auth/login", async (req, res) => {
 
     const token = jwt.sign(
       { email: user.email },
-      process.env.JWT_SECRET
+      process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
