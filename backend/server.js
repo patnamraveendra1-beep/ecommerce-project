@@ -10,7 +10,7 @@ const { MongoClient, ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const app = express();
-
+const Razorpay = require("razorpay");
 app.use(cors());
 app.use(express.json());
 
@@ -22,6 +22,10 @@ console.log("MONGO_URI =", process.env.MONGO_URI);
 
 const client = new MongoClient(process.env.MONGO_URI);
 let db;
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
 // JWT Middleware
 function verifyToken(req, res, next) {
@@ -284,7 +288,28 @@ res.json({
 message: "Quantity Updated",
 });
 });
+// ================= PAYMENT =================
 
+app.post("/api/payment/create-order", verifyToken, async (req, res) => {
+  try {
+    const { amount } = req.body;
+
+    const options = {
+      amount: amount * 100,
+      currency: "INR",
+      receipt: "receipt_" + Date.now(),
+    };
+
+    const order = await razorpay.orders.create(options);
+
+    res.json(order);
+
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+});
 // ================= PLACE ORDER =================
 
 app.post("/api/orders", verifyToken, async (req, res) => {
