@@ -1,7 +1,7 @@
 require ("dotenv").config();
 const dns = require("dns");
 dns.setServers(["1.1.1.1", "8.8.8.8"]);
-
+const Razorpay = require("razorpay");
 const express = require("express");
 console.log("MY SERVER FILE LOADED");
 const authRoutes = require("./routes/authRoutes");
@@ -10,7 +10,7 @@ const { MongoClient, ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const app = express();
-const Razorpay = require("razorpay");
+
 app.use(cors());
 app.use(express.json());
 
@@ -22,10 +22,6 @@ console.log("MONGO_URI =", process.env.MONGO_URI);
 
 const client = new MongoClient(process.env.MONGO_URI);
 let db;
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
 
 // JWT Middleware
 function verifyToken(req, res, next) {
@@ -343,7 +339,10 @@ total: cartItems.reduce(
 (sum, item) => sum + Number (item.price),
 0
 ),
-status: "Pending",
+paymentId: req.body.razorpay_payment_id,
+razorpayOrderId: req.body.razorpay_order_id,
+
+status: "Paid",
 createdAt: new Date(),
 });
 
