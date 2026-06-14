@@ -292,6 +292,8 @@ message: "Quantity Updated",
 
 app.post("/api/payment/create-order", verifyToken, async (req, res) => {
   try {
+    console.log("PAYMENT REQUEST BODY:", req.body);
+
     const { amount } = req.body;
 
     const options = {
@@ -302,9 +304,17 @@ app.post("/api/payment/create-order", verifyToken, async (req, res) => {
 
     const order = await razorpay.orders.create(options);
 
-    res.json(order);
+    console.log("RAZORPAY ORDER CREATED:", order);
+
+    res.json({
+      id: order.id,
+      amount: order.amount,
+      currency: order.currency,
+    });
 
   } catch (err) {
+    console.log("RAZORPAY ERROR:", err);
+
     res.status(500).json({
       error: err.message,
     });
@@ -456,6 +466,16 @@ async function start() {
     db = client.db("ecommerce");
 
     console.log("DB CONNECTED SUCCESSFULLY ✅");
+
+    // ✅ Razorpay init here (IMPORTANT FIX)
+    const razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+
+    // make it global if needed
+    global.razorpay = razorpay;
+
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
