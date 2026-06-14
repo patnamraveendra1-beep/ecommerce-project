@@ -402,6 +402,29 @@ app.get("/api/admin/orders", async (req, res) => {
     });
   }
 });
+app.put("/api/admin/orders/:id", async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    await db.collection("orders").updateOne(
+      {
+        _id: new ObjectId(req.params.id),
+      },
+      {
+        $set: { status },
+      }
+    );
+
+    res.json({
+      message: "Order Status Updated",
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+});
 app.get("/api/admin/users", async (req, res) => {
   try {
     const users = await db
