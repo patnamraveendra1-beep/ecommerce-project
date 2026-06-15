@@ -16,7 +16,7 @@ pipeline {
 
         stage('Build Backend Image') {
             steps {
-                bat 'docker build -t %BACKEND_IMAGE%:latest -f backend/Dockerfile backend'
+                sh 'docker build -t ${BACKEND_IMAGE}:latest -f backend/Dockerfile backend'
             }
         }
 
@@ -27,14 +27,14 @@ pipeline {
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
                 }
             }
         }
 
         stage('Push Backend Image') {
             steps {
-                bat 'docker push %BACKEND_IMAGE%:latest'
+                sh 'docker push ${BACKEND_IMAGE}:latest'
             }
         }
     }
